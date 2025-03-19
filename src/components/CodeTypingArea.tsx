@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Play, Pause, RefreshCw } from 'lucide-react';
@@ -79,22 +78,6 @@ const CodeTypingArea: React.FC<CodeTypingAreaProps> = ({ code, language, onCompl
     } else {
       // Clear error highlight when typing correctly
       setLastErrorPosition(null);
-    }
-    
-    // Block incorrect input - don't process it
-    if (
-      // Allow navigation keys
-      !['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End', 'PageUp', 'PageDown'].includes(e.key) &&
-      // Allow control keys
-      !(e.ctrlKey || e.metaKey) &&
-      // Allow expected character or backspace/delete
-      e.key !== 'Backspace' && 
-      e.key !== 'Delete' && 
-      // Single character keys that don't match expected char
-      (e.key.length === 1 && e.key !== expectedChar)
-    ) {
-      e.preventDefault();
-      return;
     }
     
     // Allow backspace only if there's something to delete
