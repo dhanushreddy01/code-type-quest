@@ -19,6 +19,7 @@ const CodeTypingArea: React.FC<CodeTypingAreaProps> = ({ code, language, onCompl
   const [currentTime, setCurrentTime] = useState<number>(0);
   const [errors, setErrors] = useState<number>(0);
   const [isCompleted, setIsCompleted] = useState<boolean>(false);
+  const [lastErrorPosition, setLastErrorPosition] = useState<number | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Split code into lines for display
@@ -65,6 +66,19 @@ const CodeTypingArea: React.FC<CodeTypingAreaProps> = ({ code, language, onCompl
         }
       }, 0);
       return;
+    }
+    
+    // Check if current input is incorrect and highlight it
+    if (e.key.length === 1 && e.key !== expectedChar) {
+      // Set the last error position to highlight the error
+      setLastErrorPosition(currentPosition);
+      
+      // Block incorrect input
+      e.preventDefault();
+      return;
+    } else {
+      // Clear error highlight when typing correctly
+      setLastErrorPosition(null);
     }
     
     // Block incorrect input - don't process it
@@ -150,6 +164,7 @@ const CodeTypingArea: React.FC<CodeTypingAreaProps> = ({ code, language, onCompl
     setCurrentTime(0);
     setErrors(0);
     setIsCompleted(false);
+    setLastErrorPosition(null);
     
     // Focus the textarea after reset
     setTimeout(() => {
@@ -221,9 +236,17 @@ const CodeTypingArea: React.FC<CodeTypingAreaProps> = ({ code, language, onCompl
                   const absoluteIndex = codeLines.slice(0, lineIndex).join('\n').length + (lineIndex > 0 ? 1 : 0) + charIndex;
                   const typedChar = typedLines[lineIndex]?.[charIndex];
                   
+                  // Determine character class based on typing status
                   let className = "character character-pending";
+                  
                   if (typedChar !== undefined) {
-                    className = typedChar === char ? "character character-correct" : "character character-incorrect";
+                    // Character has been typed - show as correct
+                    className = "character character-correct";
+                  }
+                  
+                  // Check if this is the position of the last error
+                  if (absoluteIndex === lastErrorPosition) {
+                    className = "character character-error";
                   }
                   
                   // Add cursor after the last typed character
