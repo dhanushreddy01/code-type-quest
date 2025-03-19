@@ -48,8 +48,11 @@ const CodeTypingArea: React.FC<CodeTypingAreaProps> = ({ code, language, onCompl
       setStartTime(Date.now());
     }
 
+    const currentPosition = typedCode.length;
+    const expectedChar = code[currentPosition];
+    
     // Handle special cases like Tab key
-    if (e.key === 'Tab') {
+    if (e.key === 'Tab' && expectedChar === '\t') {
       e.preventDefault();
       const cursorPosition = e.currentTarget.selectionStart;
       const newValue = typedCode.substring(0, cursorPosition) + '  ' + typedCode.substring(cursorPosition);
@@ -61,36 +64,71 @@ const CodeTypingArea: React.FC<CodeTypingAreaProps> = ({ code, language, onCompl
           textareaRef.current.selectionStart = textareaRef.current.selectionEnd = cursorPosition + 2;
         }
       }, 0);
+      return;
     }
-  }, [isStarted, isPaused, typedCode]);
+    
+    // Block incorrect input - don't process it
+    if (
+      // Allow navigation keys
+      !['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End', 'PageUp', 'PageDown'].includes(e.key) &&
+      // Allow control keys
+      !(e.ctrlKey || e.metaKey) &&
+      // Allow expected character or backspace/delete
+      e.key !== 'Backspace' && 
+      e.key !== 'Delete' && 
+      // Single character keys that don't match expected char
+      (e.key.length === 1 && e.key !== expectedChar)
+    ) {
+      e.preventDefault();
+      return;
+    }
+    
+    // Allow backspace only if there's something to delete
+    if (e.key === 'Backspace' && typedCode.length === 0) {
+      e.preventDefault();
+      return;
+    }
+  }, [isStarted, isPaused, typedCode, code]);
 
   // Handle input in textarea
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newValue = e.target.value;
-    setTypedCode(newValue);
-
-    // Count errors for each character
-    let newErrors = 0;
+    
+    // Only allow input that matches the expected characters
+    let validInput = '';
+    let currentErrors = 0;
+    
+    // Check each character to ensure it matches the expected character in the code
     for (let i = 0; i < newValue.length; i++) {
-      if (i >= code.length || newValue[i] !== code[i]) {
-        newErrors++;
+      if (i < code.length && newValue[i] === code[i]) {
+        validInput += newValue[i];
+      } else {
+        // If character doesn't match, don't add it to validInput
+        // but count it as an error if it's within code length
+        if (i < code.length) {
+          currentErrors++;
+        }
+        break; // Stop processing after first error
       }
     }
-    setErrors(newErrors);
+    
+    // Update typed code with only valid input
+    setTypedCode(validInput);
+    setErrors(currentErrors);
 
     // Check if completed
-    if (newValue.length >= code.length) {
+    if (validInput.length >= code.length) {
       setIsCompleted(true);
       setIsPaused(true);
       
       // Calculate final stats
-      const accuracy = calculateAccuracy(newValue, code);
-      const wpm = calculateWPM(newValue.length, currentTime);
+      const accuracy = calculateAccuracy(validInput, code);
+      const wpm = calculateWPM(validInput.length, currentTime);
       
       onComplete({
         wpm,
         accuracy,
-        errors: newErrors,
+        errors: currentErrors,
         time: currentTime
       });
     }
