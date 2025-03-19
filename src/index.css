@@ -45,7 +45,7 @@
 
     --code-correct: 142 72% 29%;
     --code-incorrect: 0 84% 60%;
-    --code-pending: 220 13% 91%;
+    --code-pending: 0 0% 0%;
     --code-cursor: 221 83% 53%;
     --code-error-highlight: 0 100% 50%;
   }
@@ -90,7 +90,7 @@
 
     --code-correct: 142 72% 29%;
     --code-incorrect: 0 84% 60%;
-    --code-pending: 217 33% 17%;
+    --code-pending: 0 0% 100%;
     --code-cursor: 224 76% 48%;
     --code-error-highlight: 0 100% 70%;
   }
@@ -170,7 +170,7 @@
 }
 
 .character-pending {
-  @apply text-code-pending;
+  @apply text-code-pending font-normal;
 }
 
 .character-error {
