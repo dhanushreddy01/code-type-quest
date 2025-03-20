@@ -232,15 +232,15 @@ const CodeTypingArea: React.FC<CodeTypingAreaProps> = ({ code, language, onCompl
                     className = "character character-error";
                   }
                   
-                  // Add cursor after the last typed character
+                  // Add cursor at the start of the character
                   const showCursor = typedCode.length === absoluteIndex;
                   
                   return (
                     <React.Fragment key={`${lineIndex}-${charIndex}`}>
+                      {showCursor && <span className="typing-cursor"></span>}
                       <span className={className}>
                         {char === ' ' ? <>&nbsp;</> : char === '\t' ? <>&nbsp;&nbsp;</> : char}
                       </span>
-                      {showCursor && <span className="typing-cursor"></span>}
                     </React.Fragment>
                   );
                 })}
